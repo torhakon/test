@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
 jobs:
   checkoutAndCommit:
-    runs-on: ubuntu_latest
+    runs-on: ubuntu-latest
     name: Check out and commit
     steps:
       - uses: actions/checkout@v4
