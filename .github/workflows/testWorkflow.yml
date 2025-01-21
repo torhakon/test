@@ -1,0 +1,13 @@
+name: Test workflow
+on:
+  workflow_dispatch:
+jobs:
+  checkoutAndCommit:
+    runs-on: ubuntu_latest
+    name: Check out and commit
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Try update
+        run: |
+          echo "Try to update and commit file!"
