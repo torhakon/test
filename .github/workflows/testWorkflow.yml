@@ -15,17 +15,25 @@ jobs:
         run: |
           echo "Try to update and commit file!"
           printf  "\nhello" >> MyFile.txt
-          # git add .
-          # git commit -m "Commit from bot"
-          # git push
-          echo "GITHUB_REPOSITORY is $GITHUB_REPOSITORY"
-          echo "GITHUB_REF_NAME is $GITHUB_REF_NAME"
-          echo "github.repository is ${{ github.repository }}"
-          echo "github.ref_name is ${{ github.ref_name }}"
-          gh api graphql -F githubRepository="${{ github.repository }}" \
-                         -F branchName="${{ github.ref_name }}" \
-                         -F expectedHeadOid="$(git rev-parse HEAD)" \
-                         -F commitMessage="Commit from bot" \
-                         -F files[][path]="MyFile.txt" \
-                         -F files[][contents]="$(base64 -w0 MyFile.txt)" \
-                         -F 'query=@.github/api/createCommitOnBranch.gql'
+          printf  "\nworld" >> MyFile2.txt
+
+          files=$(git diff --name-only HEAD^ HEAD | tr '\n' ' ')
+
+          cmd=("gh" "api" "graphql" 
+              -F "githubRepository=${{ github.repository }}" 
+              -F "branchName=${{ github.ref_name }}" 
+              -F "expectedHeadOid=$(git rev-parse HEAD)" 
+              -F "commitMessage=Commit from bot")
+
+          for file in $files; do
+            if [ -f "$file" ]; then
+              cmd+=(-F "files[][path]=$file" -F "files[][contents]=$(base64 -w0 "$file")")
+            else
+              echo "File $file does not exist, skipping."
+            fi
+          done
+
+          cmd+=(-F "query=@.github/api/createCommitOnBranch.gql")
+
+          echo "Executing: ${cmd[@]}"
+          "${cmd[@]}"
