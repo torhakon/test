@@ -2,3 +2,4 @@ My test file
 hello
 hello
 hello
+hello
