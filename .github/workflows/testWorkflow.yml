@@ -17,23 +17,33 @@ jobs:
           printf  "\nhello" >> MyFile.txt
           printf  "\nworld" >> MyFile2.txt
 
-          files=$(git diff --name-only HEAD^ HEAD | tr '\n' ' ')
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "There are uncommitted changes."
+            files=$(git status --porcelain | awk '{print $2}' | tr '\n' ' ')
+          else
+            echo "No uncommitted changes."
+            files=""
+          fi
 
-          cmd=("gh" "api" "graphql" 
-              -F "githubRepository=${{ github.repository }}" 
-              -F "branchName=${{ github.ref_name }}" 
-              -F "expectedHeadOid=$(git rev-parse HEAD)" 
-              -F "commitMessage=Commit from bot")
+          if [ -n "$files" ]; then
+            cmd=("gh" "api" "graphql" 
+                -F "githubRepository=${{ github.repository }}" 
+                -F "branchName=${{ github.ref_name }}" 
+                -F "expectedHeadOid=$(git rev-parse HEAD)" 
+                -F "commitMessage=Commit from bot")
 
-          for file in $files; do
-            if [ -f "$file" ]; then
-              cmd+=(-F "files[][path]=$file" -F "files[][contents]=$(base64 -w0 "$file")")
-            else
-              echo "File $file does not exist, skipping."
-            fi
-          done
+            for file in $files; do
+              if [ -f "$file" ]; then
+                cmd+=(-F "files[][path]=$file" -F "files[][contents]=$(base64 -w0 "$file")")
+              else
+                echo "File $file does not exist, skipping."
+              fi
+            done
 
-          cmd+=(-F "query=@.github/api/createCommitOnBranch.gql")
+            cmd+=(-F "query=@.github/api/createCommitOnBranch.gql")
 
-          echo "Executing: ${cmd[@]}"
-          "${cmd[@]}"
+            echo "Executing: ${cmd[@]}"
+            "${cmd[@]}"
+          else
+            echo "No files to commit."
+          fi
