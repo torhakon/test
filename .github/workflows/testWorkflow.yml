@@ -35,6 +35,8 @@ jobs:
           # git add .
           # git commit -m "Commit from bot"
           # git push
+          echo "GITHUB_REPOSITORY is ${{ env.GITHUB_REPOSITORY }}"
+          echo "GITHUB_REF_TYPE is ${{ env.GITHUB_REF_TYPE }}"
           gh api graphql \
             -F $githubRepository=$GITHUB_REPOSITORY \
             -F branchName=$GITHUB_REF_TYPE \
