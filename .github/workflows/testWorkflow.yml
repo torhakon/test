@@ -36,12 +36,12 @@ jobs:
           # git commit -m "Commit from bot"
           # git push
           echo "GITHUB_REPOSITORY is $GITHUB_REPOSITORY"
-          echo "GITHUB_REF_TYPE is $GITHUB_REF_TYPE"
+          echo "GITHUB_REF_NAME is $GITHUB_REF_NAME"
           echo "github.repository is ${{ github.repository }}"
           echo "github.ref_name is ${{ github.ref_name }}"
           gh api graphql \
-            -F $githubRepository=$GITHUB_REPOSITORY \
-            -F branchName=$GITHUB_REF_TYPE \
+            -F $githubRepository=${{ github.repository }} \
+            -F branchName=${{ github.ref_name }} \
             -F expectedHeadOid=$(git rev-parse HEAD) \
             -F commitMessage="Commit from bot" \
             -F files[][path]="MyFile.txt" -F files[][contents]=$(base64 -w0 MyFile.txt) \
