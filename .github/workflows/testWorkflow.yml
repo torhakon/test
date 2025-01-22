@@ -8,24 +8,7 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/create-github-app-token@v1
-        id: app-token
-        with:
-          # required
-          app-id: ${{ vars.APP_ID }}
-          private-key: ${{ secrets.PRIVATE_KEY }}
-      - name: Get GitHub App User ID
-        id: get-user-id
-        run: echo "user-id=$(gh api "/users/${{ steps.app-token.outputs.app-slug }}[bot]" --jq .id)" >> "$GITHUB_OUTPUT"
-        env:
-          GH_TOKEN: ${{ steps.app-token.outputs.token }}
       - uses: actions/checkout@v4
-        with:
-          token: ${{ steps.app-token.outputs.token }}
-      - run: |
-          git config --global user.name '${{ steps.app-token.outputs.app-slug }}[bot]'
-          git config --global user.email '${{ steps.get-user-id.outputs.user-id }}+${{ steps.app-token.outputs.app-slug }}[bot]@users.noreply.github.com'
-      # git commands like commit work using the bot user
       - name: Try update
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -39,10 +22,10 @@ jobs:
           echo "GITHUB_REF_NAME is $GITHUB_REF_NAME"
           echo "github.repository is ${{ github.repository }}"
           echo "github.ref_name is ${{ github.ref_name }}"
-          gh api graphql \
-            -F $githubRepository=${{ github.repository }} \
-            -F branchName=${{ github.ref_name }} \
-            -F expectedHeadOid=$(git rev-parse HEAD) \
-            -F commitMessage="Commit from bot" \
-            -F files[][path]="MyFile.txt" -F files[][contents]=$(base64 -w0 MyFile.txt) \
-            -F 'query=@.github/api/createCommitOnBranch.gql'
+          gh api graphql -F githubRepository="${{ github.repository }}" \
+                         -F branchName="${{ github.ref_name }}" \
+                         -F expectedHeadOid="$(git rev-parse HEAD)" \
+                         -F commitMessage="Commit from bot" \
+                         -F files[][path]="MyFile.txt" \
+                         -F files[][contents]="$(base64 -w0 MyFile.txt)" \
+                         -F 'query=@.github/api/createCommitOnBranch.gql'
