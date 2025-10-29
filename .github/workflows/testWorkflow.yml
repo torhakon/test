@@ -8,10 +8,15 @@ jobs:
     permissions:
       contents: write
     steps:
+      - uses: actions/create-github-app-token@v2
+        id: app-token
+        with:
+          app-id: ${{ vars.APP_ID }}
+          private-key: ${{ secrets.PRIVATE_KEY }
       - uses: actions/checkout@v4
       - name: Try update
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
         run: |
           echo "Try to update and commit file!"
           printf  "\nhello" >> MyFile.txt
